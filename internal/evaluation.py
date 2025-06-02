@@ -90,6 +90,20 @@ def round_dataset(dataset):
 
     return rounded_dataset
 
+def compute_frequency(dataset, tau, domain_size):
+    dic_frequency = []
+    for t in range(tau):
+        frequency = np.zeros(domain_size)
+        for val in get_coloumn_dataset(dataset, t):
+            frequency[val]+=1
+        frequency = frequency / sum(frequency)
+        dic_frequency.append(frequency)
+    
+    return dic_frequency
+
+def get_coloumn_dataset(dataset, index):
+    return [row[index] for row in dataset]
+
 def test_AVD():
     # --- Numerical example ------------------------------------------------------
     a = [
