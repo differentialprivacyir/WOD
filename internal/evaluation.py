@@ -72,6 +72,24 @@ def print_table(list1, list2, title1, title2):
     rows = list(zip_longest(list1, list2, fillvalue=""))   # keeps rows even if lengths differ
     print(tabulate(rows, headers=[title1, title2], tablefmt="github"))
 
+def round_dataset(dataset):
+    """
+    Rounding dataset to evaluate frequency estimation
+    
+    Parameters:
+        normalized_dataset (list of rows)
+    
+    Returns:
+        list of rows: rounded dataset
+    """
+
+    print("Rounding dataset ...")
+    rounded_dataset = []
+    for row in dataset:
+        rounded_dataset.append([int(round(x)) for x in row])
+
+    return rounded_dataset
+
 def test_AVD():
     # --- Numerical example ------------------------------------------------------
     a = [
