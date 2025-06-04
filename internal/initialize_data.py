@@ -18,7 +18,7 @@ def read_dataset(filename, dataFrame, limited_number = None):
 
     file.close()
 
-    if limited_number is None:
+    if limited_number == 0:
         limited_number = len(data)
     
     ###
