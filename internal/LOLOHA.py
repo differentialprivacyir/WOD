@@ -9,7 +9,7 @@ def reduce_domain_row(evolution_row, g, user_hash_function):
 def compute_optimal_domain_size(eps_perm, alpha, optimal=True):
     # BiLOLOHA parameter
     g = 2
-    if not optimal:
+    if optimal:
         g = int(max(np.rint((np.sqrt(np.exp(4*eps_perm) - 14*np.exp(2*eps_perm) - 12*np.exp(2*eps_perm*(alpha+1)) + 12*np.exp(eps_perm*(alpha+1)) + 12*np.exp(eps_perm*(alpha+3)) + 1) - np.exp(2*eps_perm) + 6*np.exp(eps_perm) - 6*np.exp(eps_perm*alpha) + 1) / (6*(np.exp(eps_perm) - np.exp(eps_perm*alpha)))), 2))
         print('Optimal domain size is', g)
 

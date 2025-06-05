@@ -12,13 +12,13 @@ B = 0.005
 DELTA = 0.001
 LIMITED_NUMBER = os.environ.get('LIM', 0)
 EVOLUTION_DOMAIN_SIZE = 360  # in order to Syn.csv
-ALPHA = 0.4
+ALPHA = 0.4  # ε1 = α.ε∞
 epsiolon1 = ALPHA * EPSILON
 
 def main():
     ## Initialize dataset
     df = read_evolution_dataset('dataset/Syn.csv')
-    dataset, evolution_dataset = read_dataset(f'dataset/Data{DATASET_NUMBER}-coarse.dat', df, limited_number=int(LIMITED_NUMBER))
+    dataset, evolution_dataset = read_dataset(f'dataset/Data{DATASET_NUMBER}-coarse.dat', dataFrame=df, limited_number=int(LIMITED_NUMBER))
     domains = attributes_domain(f'dataset/Data{DATASET_NUMBER}-coarse.domain')
     tau = len(evolution_dataset[0])
     number_of_users = len(dataset)

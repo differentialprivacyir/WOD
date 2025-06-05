@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-def read_dataset(filename, dataFrame, limited_number = None):
+def read_dataset(filename, dataFrame = None, limited_number = 0):
     print('Reading dataset ...')
     data = []
 
@@ -21,6 +21,9 @@ def read_dataset(filename, dataFrame, limited_number = None):
     if limited_number == 0:
         limited_number = len(data)
     
+    if dataFrame is None:
+        return data[:limited_number], None
+
     ###
     # append each row of sync.csv to end of each row of dataset as an array
     print('Append evolution data ...')
