@@ -18,7 +18,7 @@ epsiolon1 = ALPHA * EPSILON
 def main():
     ## Initialize dataset
     df = read_evolution_dataset('dataset/Syn.csv')
-    dataset, evolution_dataset = read_dataset(f'dataset/Data{DATASET_NUMBER}-coarse.dat', df, limited_number=int(LIMITED_NUMBER))
+    dataset, evolution_dataset = read_dataset(f'dataset/Data{DATASET_NUMBER}-coarse.dat', dataFrame=df, limited_number=int(LIMITED_NUMBER))
     domains = attributes_domain(f'dataset/Data{DATASET_NUMBER}-coarse.domain')
     tau = len(evolution_dataset[0])
     number_of_users = len(dataset)
