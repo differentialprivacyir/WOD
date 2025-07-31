@@ -68,7 +68,10 @@ def average_variation_distance(list_a, list_b):
     return distances, np.mean(distances)
 
 
-def print_table(list1, list2, title1, title2):
+def print_table(list1, list2, title1, title2, silence = False):
+    if silence:
+        return
+
     rows = list(zip_longest(list1, list2, fillvalue=""))   # keeps rows even if lengths differ
     print(tabulate(rows, headers=[title1, title2], tablefmt="github"))
 

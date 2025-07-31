@@ -7,10 +7,14 @@ from internal.evaluation import *
 import os
 import progressbar  # pip install progressbar
 
-EPSILON = os.environ.get('EPSILON', 1)
-RADNOM_SEED = os.environ.get('RADNOM_SEED', 10)
-DATASET_NUMBER = os.environ.get('DATASET_NUMBER', 2)
-LIMITED_NUMBER = os.environ.get('LIM', 0)
+EPSILON = float(os.environ.get('EPSILON', 1))
+RADNOM_SEED = int(os.environ.get('RADNOM_SEED', 10))
+DATASET_NUMBER = int(os.environ.get('DATASET_NUMBER', 2))
+LIMITED_NUMBER = int(os.environ.get('LIM', 0))
+LIMITED_DIMENSIONS = int(os.environ.get('LIM_DIM', 0))
+LIMITED_TAU = int(os.environ.get('LIM_tAU', 0))
+SILENCE = bool(os.environ.get('SILENCE', True))
+
 EVOLUTION_DOMAIN_SIZE = 360  # in order to Syn.csv
 ALPHA = 0.4
 epsiolon1 = ALPHA * EPSILON
@@ -18,14 +22,20 @@ epsiolon1 = ALPHA * EPSILON
 def main():
     ## Initialize dataset
     df = read_evolution_dataset('dataset/Syn.csv')
-    dataset, _ = read_dataset(f'dataset/Data{DATASET_NUMBER}-coarse.dat', dataFrame=df, limited_number=int(LIMITED_NUMBER))
-    domains = attributes_domain(f'dataset/Data{DATASET_NUMBER}-coarse.domain')
+    dataset, _ = read_dataset(f'dataset/Data{DATASET_NUMBER}-coarse.dat', dataFrame=df,
+                              limited_number=LIMITED_NUMBER,
+                              limited_dimensions=LIMITED_DIMENSIONS)
+    domains = attributes_domain(f'dataset/Data{DATASET_NUMBER}-coarse.domain',limited_dimensions=LIMITED_DIMENSIONS)
     number_of_users = len(dataset)
     pm_obj = PM_Class(len(dataset[0]), EPSILON, RADNOM_SEED)
 
+    print('algorithm running is PM')
     print('dataset[0] is',dataset[0])
     print('number of users is', number_of_users)
     print('k is', pm_obj.k)
+    print('number of dimensions is', len(domains)+1)
+    print('epsilon is', EPSILON)
+    print('datset number is', DATASET_NUMBER)
 
     ## Normalize Dataset
     # normalize to [-1,1]
@@ -38,7 +48,8 @@ def main():
         retrieval_dataset.append(pm_obj.perturb_tuple_PM(row))
 
     print_table(normalized_dataset[0], retrieval_dataset[0],
-            'Normalized Dataset', 'Perturbed Dataset')
+            'Normalized Dataset', 'Perturbed Dataset',
+            silence=SILENCE)
 
     ## Evaluation
     # denormalizing

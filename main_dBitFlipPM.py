@@ -5,10 +5,14 @@ from other_solutions.dBitFlipPM import *
 import os
 import progressbar  # pip install progressbar
 
-EPSILON = os.environ.get('EPSILON', 1)
-RADNOM_SEED = os.environ.get('RADNOM_SEED', 10)
-DATASET_NUMBER = os.environ.get('DATASET_NUMBER', 2)
-LIMITED_NUMBER = os.environ.get('LIM', 10000)
+EPSILON = float(os.environ.get('EPSILON', 1))
+RADNOM_SEED = int(os.environ.get('RADNOM_SEED', 10))
+DATASET_NUMBER = int(os.environ.get('DATASET_NUMBER', 2))
+LIMITED_NUMBER = int(os.environ.get('LIM', 10000))
+LIMITED_DIMENSIONS = int(os.environ.get('LIM_DIM', 0))
+LIMITED_TAU = int(os.environ.get('LIM_tAU', 0))
+SILENCE = bool(os.environ.get('SILENCE', True))
+
 EVOLUTION_DOMAIN_SIZE = 360  # in order to Syn.csv
 ALPHA = 0.4
 epsiolon1 = ALPHA * EPSILON
@@ -16,16 +20,21 @@ epsiolon1 = ALPHA * EPSILON
 def main():
     ## Initialize dataset
     df = read_evolution_dataset('dataset/Syn.csv')
-    _, evolution_dataset = read_dataset(f'dataset/Data{DATASET_NUMBER}-coarse.dat', dataFrame=df, limited_number=int(LIMITED_NUMBER))
+    _, evolution_dataset = read_dataset(f'dataset/Data{DATASET_NUMBER}-coarse.dat', dataFrame=df,
+                                        limited_number=LIMITED_NUMBER,
+                                        limited_tau=LIMITED_TAU)
     tau = len(evolution_dataset[0])
     n = len(evolution_dataset)
     b = EVOLUTION_DOMAIN_SIZE  # number of buckets
     d = EVOLUTION_DOMAIN_SIZE  # number of bits each user sample/report
 
+    print('algorithm running is dBitFlipPM')
     print('number of users is', n)
     print('evolution_dataset[0][:10] is',evolution_dataset[0][:10])
     print('tau is', tau)
     print('number of buckets is', b)
+    print('epsilon is', EPSILON)
+    print('datset number is', DATASET_NUMBER)
 
     ## Real frequency for each data collection $t \in [\tau]$
     dic_real_freq = compute_frequency(evolution_dataset, tau, EVOLUTION_DOMAIN_SIZE)
@@ -47,7 +56,9 @@ def main():
     for t in range(tau):
         dic_estimate_freq.append(dBitFlipPM_obj.dBitFlipPM_Aggregator(get_coloumn_dataset(perturbed_evolution_dataset, t)))
 
-    print_table(dic_real_freq[0][:10], dic_estimate_freq[0][:10], 'real frequency', 'estimate frequency')
+    print_table(dic_real_freq[0][:10], dic_estimate_freq[0][:10],
+                'real frequency', 'estimate frequency',
+                silence=SILENCE)
 
     print('MSE of frequency is', findMSE(dic_real_freq, dic_estimate_freq))
 

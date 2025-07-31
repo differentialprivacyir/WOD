@@ -5,12 +5,16 @@ from server.server import *
 import os
 import progressbar  # pip install progressbar
 
-EPSILON = os.environ.get('EPSILON', 1)
-RADNOM_SEED = os.environ.get('RADNOM_SEED', 10)
-DATASET_NUMBER = os.environ.get('DATASET_NUMBER', 2)
+EPSILON = float(os.environ.get('EPSILON', 1))
+RADNOM_SEED = int(os.environ.get('RADNOM_SEED', 10))
+DATASET_NUMBER = int(os.environ.get('DATASET_NUMBER', 2))
+LIMITED_DIMENSIONS = int(os.environ.get('LIM_DIM', 0))
+LIMITED_TAU = int(os.environ.get('LIM_tAU', 0))
+LIMITED_NUMBER = int(os.environ.get('LIM', 0))
+SILENCE = bool(os.environ.get('SILENCE', True))
+
 B = 0.005
 DELTA = 0.001
-LIMITED_NUMBER = os.environ.get('LIM', 0)
 EVOLUTION_DOMAIN_SIZE = 360  # in order to Syn.csv
 ALPHA = 0.4  # ε1 = α.ε∞
 epsiolon1 = ALPHA * EPSILON
@@ -18,15 +22,22 @@ epsiolon1 = ALPHA * EPSILON
 def main():
     ## Initialize dataset
     df = read_evolution_dataset('dataset/Syn.csv')
-    dataset, evolution_dataset = read_dataset(f'dataset/Data{DATASET_NUMBER}-coarse.dat', dataFrame=df, limited_number=int(LIMITED_NUMBER))
-    domains = attributes_domain(f'dataset/Data{DATASET_NUMBER}-coarse.domain')
+    dataset, evolution_dataset = read_dataset(f'dataset/Data{DATASET_NUMBER}-coarse.dat', dataFrame=df,
+                                              limited_number=LIMITED_NUMBER,
+                                              limited_dimensions=LIMITED_DIMENSIONS,
+                                              limited_tau=LIMITED_TAU)
+    domains = attributes_domain(f'dataset/Data{DATASET_NUMBER}-coarse.domain', limited_dimensions=LIMITED_DIMENSIONS)
     tau = len(evolution_dataset[0])
     number_of_users = len(dataset)
 
+    print('algorithm running is WoD')
     print('dataset[0] is',dataset[0])
     print('evolution_dataset[0][:10] is',evolution_dataset[0][:10])
     print('tau is', tau)
     print('number of users is', number_of_users)
+    print('number of dimensions is', len(domains)+1)
+    print('epsilon is', EPSILON)
+    print('datset number is', DATASET_NUMBER)
 
     ## Real frequency for each data collection $t \in [\tau]$
     dic_real_freq = compute_frequency(evolution_dataset, tau, EVOLUTION_DOMAIN_SIZE)
@@ -41,18 +52,24 @@ def main():
     client_obj = Client(EPSILON, RADNOM_SEED, B, DELTA)
     server_obj = Server(domains)
 
-    print_table(evolution_dataset[0][:10], hashed_evolution_dataset[0][:10], 'evolution_dataset', 'hashed_evolution_dataset')
+    print_table(evolution_dataset[0][:10], hashed_evolution_dataset[0][:10],
+                'evolution_dataset', 'hashed_evolution_dataset',
+                silence=SILENCE)
 
     ## Perturbation with GRR
     perturbed_evolution_dataset = perturbation_GRR(hashed_evolution_dataset, g, EPSILON, 0.2)
-    print_table(hashed_evolution_dataset[0][:10], perturbed_evolution_dataset[0][:10], 'hashed_evolution_dataset', 'perturbed_evolution_dataset')
+    print_table(hashed_evolution_dataset[0][:10], perturbed_evolution_dataset[0][:10],
+                'hashed_evolution_dataset', 'perturbed_evolution_dataset',
+                silence=SILENCE)
 
     ## Normalize Dataset
     # normalize to [-1,1]
     normalized_dataset = normalize_dataset(dataset, domains)
     normalized_evolution_dataset = normalize_dataset(perturbed_evolution_dataset, [list(range(g)) for _ in range(tau)])
 
-    print_table(perturbed_evolution_dataset[0][:10], normalized_evolution_dataset[0][:10], 'perturbed_evolution_dataset', 'normalized_evolution_dataset')
+    print_table(perturbed_evolution_dataset[0][:10], normalized_evolution_dataset[0][:10],
+                'perturbed_evolution_dataset', 'normalized_evolution_dataset',
+                silence=SILENCE)
 
     ## Wheel of Differential
     print('Wheel of Differential ...')
@@ -67,7 +84,8 @@ def main():
 
     ## Evaluation
     print_table([*normalized_dataset[0], normalized_evolution_dataset[0][0]], [*retrieval_dataset[0], retrieval_evolutional_dataset[0][0]],
-            'normalized data', 'retrival data')
+            'normalized data', 'retrival data',
+            silence=SILENCE)
 
     print('domain size of retrieval data is',len(retrieval_dataset[0]))
 
@@ -76,8 +94,10 @@ def main():
     denormalized_evolution_dataset = denormalize_dataset(retrieval_evolutional_dataset, [list(range(g)) for _ in range(tau)])
     rounded_evolution_dataset = round_dataset(denormalized_evolution_dataset)
 
-    print_table(dataset[0], denormalized[0], 'original', 'retrieved')
-    print_table(hashed_evolution_dataset[0][:10], rounded_evolution_dataset[0][:10], 'original evolution', 'retrieved evolution')
+    print_table(dataset[0], denormalized[0], 'original', 'retrieved', silence=SILENCE)
+    print_table(hashed_evolution_dataset[0][:10], rounded_evolution_dataset[0][:10],
+                'original evolution', 'retrieved evolution',
+                silence=SILENCE)
 
     print('MSE is', findMSE(normalized_dataset, retrieval_dataset))
     _, avg = average_variation_distance(dataset, denormalized)
@@ -94,7 +114,9 @@ def main():
 
     prog.finish()
 
-    print_table(dic_real_freq[0][:10], dic_estimate_freq[0][:10], 'real frequency', 'estimate frequency')
+    print_table(dic_real_freq[0][:10], dic_estimate_freq[0][:10],
+                'real frequency', 'estimate frequency',
+                silence=SILENCE)
 
     print('MSE of frequency is', findMSE(dic_real_freq, dic_estimate_freq))
 

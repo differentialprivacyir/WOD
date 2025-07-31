@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-def read_dataset(filename, dataFrame = None, limited_number = 0):
+def read_dataset(filename, dataFrame = None, limited_number = 0, limited_dimensions = 0, limited_tau = 0):
     print('Reading dataset ...')
     data = []
 
@@ -14,7 +14,11 @@ def read_dataset(filename, dataFrame = None, limited_number = 0):
             break
         line = line.strip()
         line_splited = line.split(",")
-        data.append([int(x) for x in line_splited])
+
+        if limited_dimensions != 0:
+            data.append([int(x) for x in line_splited[:limited_dimensions]])
+        else:
+            data.append([int(x) for x in line_splited])
 
     file.close()
 
@@ -30,11 +34,15 @@ def read_dataset(filename, dataFrame = None, limited_number = 0):
     evolution_dataset = []
     for index, _ in enumerate(data):
         evolution_row = np.array(dataFrame.iloc[index%dataFrame.shape[0]])
-        evolution_dataset.append(list(evolution_row))
+
+        if limited_tau != 0:
+            evolution_dataset.append(list(evolution_row)[:limited_tau])
+        else:
+            evolution_dataset.append(list(evolution_row))
 
     return data[:limited_number], evolution_dataset[:limited_number]
 
-def attributes_domain(filename):
+def attributes_domain(filename, limited_dimensions = 0):
     print('Reading domains ...')
     domains = []
     
@@ -50,6 +58,9 @@ def attributes_domain(filename):
         domains.append([int(x) for x in line_splited[3:]])
 
     file.close()
+
+    if limited_dimensions != 0:
+        return domains[:limited_dimensions]
     return domains
 
 def read_evolution_dataset(filename):

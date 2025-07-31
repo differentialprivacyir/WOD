@@ -12,4 +12,4 @@ For process whole dataset, run <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; `./run.sh`
 
 For process limited number of lines, run <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; `./run.sh 100`
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; `./run.sh --lim-users=100`
