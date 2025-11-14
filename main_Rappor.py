@@ -8,7 +8,7 @@ import progressbar  # pip install progressbar
 EPSILON = float(os.environ.get('EPSILON', 1))
 RADNOM_SEED = int(os.environ.get('RADNOM_SEED', 10))
 DATASET_NUMBER = int(os.environ.get('DATASET_NUMBER', 2))
-LIMITED_NUMBER = int(os.environ.get('LIM', 10000))
+LIMITED_NUMBER = int(os.environ.get('LIM', 0))
 LIMITED_DIMENSIONS = int(os.environ.get('LIM_DIM', 0))
 LIMITED_TAU = int(os.environ.get('LIM_tAU', 0))
 SILENCE = bool(os.environ.get('SILENCE', True))

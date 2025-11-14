@@ -1,5 +1,5 @@
 from internal.initialize_data import *
-from internal.alpha_point import *
+from internal.LOLOHA import *
 from client.client import *
 from server.server import *
 import os
@@ -12,11 +12,12 @@ LIMITED_DIMENSIONS = int(os.environ.get('LIM_DIM', 0))
 LIMITED_TAU = int(os.environ.get('LIM_tAU', 0))
 LIMITED_NUMBER = int(os.environ.get('LIM', 0))
 SILENCE = bool(os.environ.get('SILENCE', True))
-DISCRETIZATION_GRANULARITY = int(os.environ.get('DISCRETIZATION', 3))
 
 B = 0.005
 DELTA = 0.001
 EVOLUTION_DOMAIN_SIZE = 360  # in order to Syn.csv
+ALPHA = 0.4  # ε1 = α.ε∞
+epsiolon1 = ALPHA * EPSILON
 
 def main():
     ## Initialize dataset
@@ -32,28 +33,43 @@ def main():
     print('algorithm running is WoD')
     print('dataset[0] is',dataset[0])
     print('evolution_dataset[0][:10] is',evolution_dataset[0][:10])
-    print('Number of times that each user send data is', tau)
+    print('tau is', tau)
     print('number of users is', number_of_users)
     print('number of dimensions is', len(domains)+1)
     print('epsilon is', EPSILON)
     print('datset number is', DATASET_NUMBER)
-    print('discretization granularity is', DISCRETIZATION_GRANULARITY)
+
+    ## Real frequency for each data collection $t \in [\tau]$
+    dic_real_freq = compute_frequency(evolution_dataset, tau, EVOLUTION_DOMAIN_SIZE)
+
+    ## Reduce domain size by hashing
+    g = compute_optimal_domain_size(EPSILON, ALPHA)
+    hashed_evolution_dataset, user_hash_functions = reduce_domain_dataset(evolution_dataset, g)
 
     # Revise the domains (append evolution domain)
-    domains.append(list(range(EVOLUTION_DOMAIN_SIZE)))
-    # Client
-    alpha_point_obj = Alpha_point_Class(RADNOM_SEED, DISCRETIZATION_GRANULARITY)
+    domains.append(list(range(g)))
+
     client_obj = Client(EPSILON, RADNOM_SEED, B, DELTA)
-    # Server
     server_obj = Server(domains)
 
-    rounded_evolution_dataset =  alpha_point_obj.alpha_point_dataset(evolution_dataset)
+    print_table(evolution_dataset[0][:10], hashed_evolution_dataset[0][:10],
+                'evolution_dataset', 'hashed_evolution_dataset',
+                silence=SILENCE)
+
+    ## Perturbation with GRR
+    perturbed_evolution_dataset = perturbation_GRR(hashed_evolution_dataset, g, EPSILON, 0.2)
+    print_table(hashed_evolution_dataset[0][:10], perturbed_evolution_dataset[0][:10],
+                'hashed_evolution_dataset', 'perturbed_evolution_dataset',
+                silence=SILENCE)
 
     ## Normalize Dataset
-
     # normalize to [-1,1]
     normalized_dataset = normalize_dataset(dataset, domains)
-    normalized_evolution_dataset = normalize_dataset(rounded_evolution_dataset, [list(range(EVOLUTION_DOMAIN_SIZE)) for _ in range(tau)])
+    normalized_evolution_dataset = normalize_dataset(perturbed_evolution_dataset, [list(range(g)) for _ in range(tau)])
+
+    print_table(perturbed_evolution_dataset[0][:10], normalized_evolution_dataset[0][:10],
+                'perturbed_evolution_dataset', 'normalized_evolution_dataset',
+                silence=SILENCE)
 
     ## Wheel of Differential
     print('Wheel of Differential ...')
@@ -67,26 +83,43 @@ def main():
         retrieval_evolutional_dataset.append(get_coloumn_dataset(retrieval_data, -1))
 
     ## Evaluation
+    print_table([*normalized_dataset[0], normalized_evolution_dataset[0][0]], [*retrieval_dataset[0], retrieval_evolutional_dataset[0][0]],
+            'normalized data', 'retrival data',
+            silence=SILENCE)
+
+    print('domain size of retrieval data is',len(retrieval_dataset[0]))
 
     # denormalizing
     denormalized = denormalize_dataset(retrieval_dataset, domains)
-    denormalized_evolution_dataset = denormalize_dataset(retrieval_evolutional_dataset, [list(range(EVOLUTION_DOMAIN_SIZE)) for _ in range(tau)])
+    denormalized_evolution_dataset = denormalize_dataset(retrieval_evolutional_dataset, [list(range(g)) for _ in range(tau)])
+    rounded_evolution_dataset = round_dataset(denormalized_evolution_dataset)
 
     print_table(dataset[0], denormalized[0], 'original', 'retrieved', silence=SILENCE)
-    print_table(rounded_evolution_dataset[62][:], denormalized_evolution_dataset[62][:],
-                'rounded_evolution_dataset', 'denormalized_evolution_dataset',
+    print_table(hashed_evolution_dataset[0][:10], rounded_evolution_dataset[0][:10],
+                'original evolution', 'retrieved evolution',
                 silence=SILENCE)
 
-    # find MSE
     print('MSE is', findMSE(normalized_dataset, retrieval_dataset))
     _, avg = average_variation_distance(dataset, denormalized)
     print('Average Variation Distance is', avg)
 
     ## Evaluate Frequency Estimation
-    dic_real_freq = compute_frequency(evolution_dataset, tau, EVOLUTION_DOMAIN_SIZE)
-    dic_estimate_freq = compute_frequency(denormalized_evolution_dataset, tau, EVOLUTION_DOMAIN_SIZE, True)
+    prog = progressbar.ProgressBar(maxval=tau)
+    prog.start()
+
+    dic_estimate_freq = []
+    for t in range(tau):
+        dic_estimate_freq.append(LOLOHA_Aggregator(get_coloumn_dataset(rounded_evolution_dataset, t), user_hash_functions, EVOLUTION_DOMAIN_SIZE, EPSILON, epsiolon1, ALPHA))
+        prog.update(t) 
+
+    prog.finish()
+
+    print_table(dic_real_freq[0][:10], dic_estimate_freq[0][:10],
+                'real frequency', 'estimate frequency',
+                silence=SILENCE)
 
     print('MSE of frequency is', findMSE(dic_real_freq, dic_estimate_freq))
+
 
 if __name__ == "__main__":
     main()

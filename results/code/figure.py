@@ -1,9 +1,15 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
+# pip install arabic-reshaper python-bidi -i https://mirror-pypi.runflare.com/simple
+import arabic_reshaper
+from bidi.algorithm import get_display
+
+markers = [
+    's', 'o', 'v', '^', 'D', '*', '>', '<'
+]
+
 # The input string containing the Markdown table
-
-
 def draw_figure(data_string, xlabel, ylabel, title):
     # a more robust way to parse the markdown table
     # Split the string by lines, remove leading/trailing whitespace, and filter out empty lines and separator lines.
@@ -27,14 +33,14 @@ def draw_figure(data_string, xlabel, ylabel, title):
     # Plotting the data
     plt.figure(figsize=(10, 6))
 
-    for column in df.columns:
+    for index, column in enumerate(df.columns):
         if column != xlabel:
-            plt.plot(df[xlabel], df[column], marker='o', linestyle='-', label=column)
+            plt.plot(df[xlabel], df[column], marker=markers[index], linestyle='-', label=column)
 
     # Adding labels and title
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.title(title)
+    plt.xlabel(get_display(arabic_reshaper.reshape(xlabel)))
+    plt.ylabel(get_display(arabic_reshaper.reshape(ylabel)))
+    plt.title(get_display(arabic_reshaper.reshape(title)))
     plt.legend()
     plt.grid(True)
     plt.show()

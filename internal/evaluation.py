@@ -93,12 +93,16 @@ def round_dataset(dataset):
 
     return rounded_dataset
 
-def compute_frequency(dataset, tau, domain_size):
+def compute_frequency(dataset, tau, domain_size, force_int = False):
     dic_frequency = []
     for t in range(tau):
         frequency = np.zeros(domain_size)
         for val in get_coloumn_dataset(dataset, t):
-            frequency[val]+=1
+            if force_int:
+                val = int(val)
+            if val == domain_size: # compatible with alpha-point algorithm
+                val = val - 1
+            frequency[val] += 1
         frequency = frequency / sum(frequency)
         dic_frequency.append(frequency)
     
@@ -106,6 +110,29 @@ def compute_frequency(dataset, tau, domain_size):
 
 def get_coloumn_dataset(dataset, index):
     return [row[index] for row in dataset]
+
+def expand_array_with_zeros(arr, expansion_factor):
+    """
+    Expand array by inserting zeros between columns.
+    
+    Parameters:
+    arr: numpy array of shape (m, n)
+    expansion_factor: factor by which to expand columns
+    
+    Returns:
+    expanded_array: numpy array of shape (m, n * expansion_factor)
+    """
+    m, n = arr.shape
+    expanded_n = n * expansion_factor
+    
+    # Create an empty array with the expanded shape
+    expanded_arr = np.zeros((m, expanded_n), dtype=arr.dtype)
+    
+    # Place original values at every expansion_factor-th position
+    for i in range(n):
+        expanded_arr[:, i * expansion_factor] = arr[:, i]
+    
+    return expanded_arr
 
 def test_AVD():
     # --- Numerical example ------------------------------------------------------

@@ -28,6 +28,12 @@ class Client:
         results = []
 
         for e in evolution_data:
+            # fix problem at edges
+            if e == 1:
+                e = 0.999999999999
+            elif e == -1:
+                 e = -0.999999999999
+
             user_data = data.copy()
             user_data.append(e)  # combine data with evolution
             key = self.array_to_string(user_data)

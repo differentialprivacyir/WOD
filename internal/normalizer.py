@@ -9,7 +9,12 @@ def normalize(x, domain):
 def denormalize(y, domain):
     max_domain = np.max(domain)
     min_domain = np.min(domain)
-    return (((max_domain - min_domain) * (y + 1)) / 2) + min_domain
+    result = (((max_domain - min_domain) * (y + 1)) / 2) + min_domain
+    if result > max_domain:
+        return max_domain
+    if result < min_domain:
+        return min_domain
+    return result
 
 
 def normalize_dataset(dataset, domains):

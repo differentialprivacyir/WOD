@@ -58,9 +58,9 @@ class HaarTransform:
         return np.pad(data, (0, diff), mode='constant')
     
 
-def test_haar_transform():
+if __name__ == "__main__":
     haar_transform_obj= HaarTransform()
-    data = [9,7,3,5,8,4,5,7,1]
+    data = [9,7,3,5,8,4,5,7,-1]
     print('input data:', data)
     avg, eigenvector = haar_transform_obj.transnform(data)
     retrieval_data = haar_transform_obj.inverse_transform(avg, eigenvector, len(data))
